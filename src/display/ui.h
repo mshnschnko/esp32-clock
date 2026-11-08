@@ -4,7 +4,7 @@
 #include "input/input.h"
 
 // Decides what is on the screen:
-//   setup portal  >  status screen  >  current screen.
+//   setup portal  >  night screen (at night, not woken)  >  status screen  >  current screen.
 // Screens cycle on Click: clock -> weather now -> weather hours -> weather days -> clock.
 // The clock screen draws the selected face (digital/analog), a setting kept in NVS.
 // LongPress: on the clock toggles the face, elsewhere opens the status screen.
@@ -26,5 +26,12 @@ void toggleFace();
 
 // "clock (digital)", "weather now", ...
 const char* screenName();
+
+// Night mode (kNightStartMin..kNightEndMin): dim display and the night clock
+// screen; the first touch wakes normal (dim) screens for kNightWakeMs.
+// The override exists for testing without waiting for the night (serial "night").
+enum class NightOverride { Auto, On, Off };
+NightOverride cycleNightOverride();  // auto -> on -> off -> auto
+const char* nightOverrideName();
 
 }  // namespace ui

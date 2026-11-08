@@ -26,6 +26,44 @@ const char* driverName() { return kDriverName; }
 
 U8G2& gfx() { return u8g2; }
 
+namespace {
+
+// SH1106/SSD1306 commands; day values = U8g2 init sequence
+// (u8x8_d_ssd1306_128x64_noname_init_seq, shared by the SH1106 driver).
+constexpr uint8_t kCmdPrecharge = 0xD9, kCmdVcomh = 0xDB;  // contrast: setContrast() (0x81)
+constexpr Levels kDay = {0xCF, 0xF1, 0x40};
+
+Levels nightLevels = {config::kNightContrast, config::kNightPrecharge, config::kNightVcomh};
+int currentNight = -1;  // unknown at start: always apply once
+
+void apply(const Levels& l) {
+  u8g2.setContrast(l.contrast);  // U8g2 API: sends 0x81 <value>
+  u8g2.sendF("ca", kCmdPrecharge, l.precharge);
+  u8g2.sendF("ca", kCmdVcomh, l.vcomh);
+  Serial.printf("[display] contrast 0x%02X, precharge 0x%02X, vcomh 0x%02X\n", l.contrast,
+                l.precharge, l.vcomh);
+}
+
+}  // namespace
+
+void setNight(bool night) {
+  if (currentNight == static_cast<int>(night)) return;
+  currentNight = night;
+  apply(night ? nightLevels : kDay);
+}
+
+void setNightLevels(const Levels& l) {
+  nightLevels = l;
+  if (currentNight == 1) apply(nightLevels);
+}
+
+Levels nightLevelsNow() { return nightLevels; }
+
+void setContrastNow(uint8_t value) {
+  u8g2.setContrast(value);
+  Serial.printf("[display] contrast 0x%02X (until the next day/night switch)\n", value);
+}
+
 void drawTestPattern() {
   const int w = u8g2.getDisplayWidth();
   const int h = u8g2.getDisplayHeight();

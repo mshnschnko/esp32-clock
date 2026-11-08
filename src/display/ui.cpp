@@ -5,8 +5,10 @@
 #include <stdio.h>
 
 #include "config.h"
+#include "display/display.h"
 #include "display/modes/analog.h"
 #include "display/modes/digital.h"
+#include "display/modes/night_clock.h"
 #include "display/modes/weather_modes.h"
 #include "display/screens.h"
 
@@ -45,8 +47,36 @@ uint8_t screen = kClockScreen;  // always the clock after boot
 uint32_t lastInputMs = 0;
 uint32_t statusUntilMs = 0;  // 0 = status screen hidden
 
+// Night mode.
+NightOverride nightOverride = NightOverride::Auto;
+bool night = false;          // updated in draw() once a second
+uint32_t wakeUntilMs = 0;    // 0 = not woken
+
 bool statusShown() {
   return statusUntilMs != 0 && static_cast<int32_t>(statusUntilMs - millis()) > 0;
+}
+
+bool awake() { return wakeUntilMs != 0 && static_cast<int32_t>(wakeUntilMs - millis()) > 0; }
+
+bool isNightTime(const screens::State& s) {
+  if (!config::kNightModeEnabled) return false;
+  switch (nightOverride) {
+    case NightOverride::On: return true;
+    case NightOverride::Off: return false;
+    case NightOverride::Auto: break;
+  }
+  if (!s.timeValid) return false;
+  const int m = s.local.tm_hour * 60 + s.local.tm_min;
+  if (config::kNightStartMin < config::kNightEndMin) {
+    return m >= config::kNightStartMin && m < config::kNightEndMin;
+  }
+  return m >= config::kNightStartMin || m < config::kNightEndMin;  // crosses midnight
+}
+
+// Back to the clock with nothing on top of it.
+void resetToClock() {
+  screen = kClockScreen;
+  statusUntilMs = 0;
 }
 
 void logScreen() { Serial.printf("[ui] screen: %s\n", screenName()); }
@@ -66,11 +96,29 @@ void begin() {
 bool handle(input::Event e) {
   const uint32_t now = millis();
 
+  if (night) {
+    if (e != input::Event::None && !awake()) {
+      // The first touch at night only wakes the screen.
+      wakeUntilMs = now + config::kNightWakeMs;
+      lastInputMs = now;
+      resetToClock();
+      Serial.println("[ui] woken up");
+      return true;
+    }
+    if (e != input::Event::None) {
+      wakeUntilMs = now + config::kNightWakeMs;  // touches keep it awake
+    } else if (wakeUntilMs != 0 && !awake()) {
+      wakeUntilMs = 0;
+      resetToClock();
+      Serial.println("[ui] back to the night screen");
+      return true;
+    }
+  }
+
   switch (e) {
     case input::Event::None:
       if (screen != kClockScreen && now - lastInputMs >= config::kAutoReturnMs) {
-        screen = kClockScreen;
-        statusUntilMs = 0;
+        resetToClock();
         Serial.println("[ui] auto-return to clock");
         return true;
       }
@@ -101,8 +149,20 @@ bool handle(input::Event e) {
 }
 
 void draw(const screens::State& s) {
+  const bool nightNow = isNightTime(s);
+  if (nightNow != night) {
+    night = nightNow;
+    wakeUntilMs = 0;
+    if (night) resetToClock();
+    Serial.printf("[ui] night %s\n", night ? "on" : "off");
+  }
+  // Disabled night mode must not send any brightness command (see config.h).
+  if (config::kNightModeEnabled) display::setNight(night);
+
   if (s.netState == net::State::Portal) {
     screens::drawPortal(s);
+  } else if (night && !awake()) {
+    modes::night_clock::draw(s);
   } else if (statusShown()) {
     screens::drawStatus(s);
   } else if (screen == kClockScreen) {
@@ -119,6 +179,25 @@ void toggleFace() {
   prefs.putUChar(kPrefsFaceKey, face);
   prefs.end();
   Serial.printf("[ui] clock face: %s\n", kFaces[face].name);
+}
+
+NightOverride cycleNightOverride() {
+  if (!config::kNightModeEnabled) {
+    Serial.println("[ui] night mode is disabled (kNightModeEnabled in config.h)");
+    return nightOverride;
+  }
+  nightOverride = static_cast<NightOverride>((static_cast<int>(nightOverride) + 1) % 3);
+  Serial.printf("[ui] night mode: %s\n", nightOverrideName());
+  return nightOverride;
+}
+
+const char* nightOverrideName() {
+  switch (nightOverride) {
+    case NightOverride::Auto: return "auto (schedule)";
+    case NightOverride::On: return "forced on";
+    case NightOverride::Off: return "forced off";
+  }
+  return "?";
 }
 
 const char* screenName() {

@@ -44,6 +44,22 @@ void printStatus() {
                 static_cast<unsigned long>(ESP.getFreeHeap()));
 }
 
+// "dim" prints the night brightness registers, "dim <contrast> <precharge> <vcomh>"
+// sets them (decimal or 0x.. hex) and applies at once if night mode is on.
+void setDim(const String& cmd) {
+  display::Levels l = display::nightLevelsNow();
+  int c, p, v;
+  if (sscanf(cmd.c_str(), "dim %i %i %i", &c, &p, &v) == 3) {
+    l = {static_cast<uint8_t>(c), static_cast<uint8_t>(p), static_cast<uint8_t>(v)};
+    display::setNightLevels(l);
+  } else if (cmd != "dim") {
+    Serial.println("Usage: dim <contrast> <precharge> <vcomh>, e.g. dim 0 0x22 0x20");
+  }
+  Serial.printf("[display] night levels: contrast 0x%02X, precharge 0x%02X, vcomh 0x%02X "
+                "(day: 0xCF 0xF1 0x40)\n",
+                l.contrast, l.precharge, l.vcomh);
+}
+
 void execute(String cmd) {
   cmd.trim();
   cmd.toLowerCase();
@@ -51,7 +67,21 @@ void execute(String cmd) {
 
   if (cmd == "help") {
     Serial.println(
-        "Commands: help, status, next, hold, face, touch, weather, ntp, wifi reset, screen test");
+        "Commands: help, status, next, hold, face, night, dim, contrast, touch, weather, ntp, "
+        "wifi reset, "
+        "screen test");
+  } else if (cmd == "dim" || cmd.startsWith("dim ")) {
+    setDim(cmd);
+  } else if (cmd.startsWith("contrast ")) {
+    int v;
+    if (sscanf(cmd.c_str(), "contrast %i", &v) == 1 && v >= 0 && v <= 255) {
+      Serial.println("WARNING: on our panel this may blank the screen until power-off");
+      display::setContrastNow(static_cast<uint8_t>(v));
+    } else {
+      Serial.println("Usage: contrast <0..255>, e.g. contrast 0x10");
+    }
+  } else if (cmd == "night") {
+    ui::cycleNightOverride();
   } else if (cmd == "face") {
     ui::toggleFace();
   } else if (cmd == "weather") {

@@ -6,6 +6,9 @@
 //   next        — same as a short touch: next display mode
 //   hold        — same as a long touch (toggle clock face / status screen)
 //   face        — toggle the clock face (digital/analog)
+//   night       — night mode: auto (schedule) -> forced on -> forced off -> auto
+//   dim [c p v] — show / set night brightness registers (contrast, pre-charge, VCOMH)
+//   contrast n  — set the display contrast right now (diagnostics)
 //   touch       — raw touch/button reading, for threshold tuning
 //   weather     — print weather data and request an update
 //   ntp         — force an NTP sync

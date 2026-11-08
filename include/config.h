@@ -37,6 +37,22 @@ constexpr uint32_t kLongPressMs = 800;
 constexpr uint32_t kStatusScreenMs = 10000;  // status screen auto-close
 constexpr uint32_t kAutoReturnMs = 15000;    // away from the clock this long without input -> clock
 
+// --- Night mode ---
+// DISABLED: on our GME12864-77 any change of the brightness registers blanks the
+// panel until power-off (see docs/roadmap.md, stage 6). With false no brightness
+// command is ever sent and the night screen is never shown.
+constexpr bool kNightModeEnabled = false;
+// Local time, minutes since midnight; the range may cross midnight.
+constexpr uint16_t kNightStartMin = 23 * 60;  // 23:00
+constexpr uint16_t kNightEndMin = 7 * 60;     // 07:00
+constexpr uint32_t kNightWakeMs = 15000;      // a touch at night shows normal screens this long
+// Night brightness (SH1106 registers). Contrast alone dims only a little; lower
+// pre-charge/VCOMH dim more, but too low turns the panel completely dark
+// (0x11/0x00 did). Tune live with the serial command "dim <contrast> <precharge> <vcomh>".
+constexpr uint8_t kNightContrast = 0x20;   // day: 0xCF; 0x00 suspected to blank the panel
+constexpr uint8_t kNightPrecharge = 0xF1;  // day: 0xF1
+constexpr uint8_t kNightVcomh = 0x40;      // day: 0x40
+
 // --- Time ---
 // POSIX TZ string. "MSK-3" = UTC+3 without DST. The DS3231 always keeps UTC.
 constexpr const char* kTimezone = "MSK-3";
