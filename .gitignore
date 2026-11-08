@@ -63,6 +63,14 @@ vcpkg_installed/
 # debug information files
 *.dwo
 
+# VS Code
+.vscode
+
 # test output & cache
 Testing/
 .cache/
+
+# PlatformIO
+.pio/
+.vscode/*
+!.vscode/extensions.json
