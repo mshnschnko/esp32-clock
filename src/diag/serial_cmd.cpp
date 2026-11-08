@@ -4,6 +4,7 @@
 
 #include "clock/time_service.h"
 #include "display/display.h"
+#include "input/input.h"
 #include "net/wifi_conn.h"
 
 namespace serial_cmd {
@@ -47,7 +48,13 @@ void execute(String cmd) {
   if (cmd.isEmpty()) return;
 
   if (cmd == "help") {
-    Serial.println("Commands: help, status, ntp, wifi reset, screen test");
+    Serial.println("Commands: help, status, next, hold, touch, ntp, wifi reset, screen test");
+  } else if (cmd == "next") {
+    input::inject(input::Event::Click);
+  } else if (cmd == "hold") {
+    input::inject(input::Event::LongPress);
+  } else if (cmd == "touch") {
+    input::printDebug();
   } else if (cmd == "status") {
     printStatus();
   } else if (cmd == "ntp") {

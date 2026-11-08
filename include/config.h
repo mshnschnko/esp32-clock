@@ -8,6 +8,12 @@
 // Wrong choice shows up as a picture shifted by 2 px or noise along the right edge.
 #define DISPLAY_SH1106 1
 
+// Mode switch input. The rest of the firmware only sees Click/LongPress events,
+// so switching to a button is just this line (+ wiring, see docs/wiring.md).
+#define INPUT_SOURCE_TOUCH 1   // wire on a touch-capable GPIO, touch its end
+#define INPUT_SOURCE_BUTTON 2  // push button between the GPIO and GND
+#define INPUT_SOURCE INPUT_SOURCE_TOUCH
+
 namespace config {
 
 constexpr uint32_t kSerialBaud = 115200;
@@ -21,6 +27,14 @@ constexpr uint32_t kI2cFreqHz = 400000;
 constexpr uint8_t kOledAddr = 0x3C;    // "0x78" on the module's ADDRESS_SELECT
 constexpr uint8_t kRtcAddr = 0x68;     // DS3231
 constexpr uint8_t kEepromAddr = 0x57;  // AT24C32 on the RTC module
+
+// --- Input (mode switch) ---
+constexpr uint8_t kInputPin = 32;        // GPIO32 = touch channel T9; later the button pin
+constexpr float kTouchPressRatio = 0.7f;    // touched: reading < baseline * ratio
+constexpr float kTouchReleaseRatio = 0.8f;  // released: reading > baseline * ratio
+constexpr uint32_t kDebounceMs = 30;
+constexpr uint32_t kLongPressMs = 800;
+constexpr uint32_t kStatusScreenMs = 10000;  // status screen auto-close
 
 // --- Time ---
 // POSIX TZ string. "MSK-3" = UTC+3 without DST. The DS3231 always keeps UTC.

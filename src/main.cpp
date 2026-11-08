@@ -1,4 +1,5 @@
-// ESP32 Wi-Fi clock. Stage 2: Wi-Fi (setup portal), NTP time, DS3231 backup.
+// ESP32 Wi-Fi clock: NTP time with DS3231 backup, Wi-Fi setup portal,
+// digital/analog display modes switched by touch (or a button).
 // See docs/idea.md. Every module is non-blocking; loop() must stay fast.
 
 #include <Arduino.h>
@@ -10,7 +11,9 @@
 #include "diag/i2c_diag.h"
 #include "diag/serial_cmd.h"
 #include "display/display.h"
-#include "display/screens.h"
+#include "display/screen_state.h"
+#include "display/ui.h"
+#include "input/input.h"
 #include "net/wifi_conn.h"
 
 namespace {
@@ -37,6 +40,7 @@ void drawScreen(time_t now) {
   screens::State s;
   s.timeStatus = timekeeping::status();
   s.timeValid = timekeeping::localNow(s.local);
+  s.secondsSinceSync = timekeeping::secondsSinceSync();
   s.netState = net::state();
   if (s.netState == net::State::Connected) {
     s.rssi = net::rssi();
@@ -45,13 +49,10 @@ void drawScreen(time_t now) {
   s.portalSecondsLeft = net::portalSecondsLeft();
   s.tempValid = tempValid;
   s.tempC = tempC;
+  s.uptimeS = millis() / 1000;
   s.blink = (now % 2) == 0;
 
-  if (s.netState == net::State::Portal) {
-    screens::drawPortal(s);
-  } else {
-    screens::drawClock(s);
-  }
+  ui::draw(s);
 }
 
 }  // namespace
@@ -71,6 +72,9 @@ void setup() {
 
   if (bus.oled) display::begin();
   rtcOk = bus.rtc && rtc_clock::begin();
+
+  input::begin();
+  ui::begin();
 
   timekeeping::begin(rtcOk);
   net::begin();
@@ -92,13 +96,17 @@ void loop() {
   serial_cmd::loop();
   updateTemperature();
 
+  const input::Event event = input::poll();
+  if (event != input::Event::None) Serial.printf("[input] %s\n", input::eventName(event));
+  const bool forceRedraw = ui::handle(event);
+
   // Redraw on every new second of the system clock (keeps the seconds display
-  // in phase with real time) and at least once a second as a fallback.
+  // in phase with real time), right after user input, and at least once a second.
   static time_t lastShown = 0;
   static uint32_t lastDrawMs = 0;
   const time_t now = time(nullptr);
   if (bus.oled && !serial_cmd::screenPaused() &&
-      (now != lastShown || millis() - lastDrawMs >= 1000)) {
+      (forceRedraw || now != lastShown || millis() - lastDrawMs >= 1000)) {
     lastShown = now;
     lastDrawMs = millis();
     drawScreen(now);
