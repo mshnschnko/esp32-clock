@@ -4,18 +4,27 @@
 #include "input/input.h"
 
 // Decides what is on the screen:
-//   setup portal  >  status screen (long press)  >  current display mode.
-// Click switches to the next mode (or closes the status screen); the mode is
-// remembered in NVS. To add a mode: a file in display/modes/ + a line in kModes (ui.cpp).
+//   setup portal  >  status screen  >  current screen.
+// Screens cycle on Click: clock -> weather now -> weather hours -> weather days -> clock.
+// The clock screen draws the selected face (digital/analog), a setting kept in NVS.
+// LongPress: on the clock toggles the face, elsewhere opens the status screen.
+// Away from the clock with no input for kAutoReturnMs -> back to the clock.
+// To add a screen: a file in display/modes/ + a line in kScreens (ui.cpp);
+// a new clock face: a line in kFaces.
 namespace ui {
 
 void begin();
 
+// Call every loop(), also with Event::None (drives the auto-return timer).
 // Returns true if the screen should be redrawn right away.
 bool handle(input::Event e);
 
 void draw(const screens::State& s);
 
-const char* modeName();
+// Switches to the next clock face and saves it (also serial command "face").
+void toggleFace();
+
+// "clock (digital)", "weather now", ...
+const char* screenName();
 
 }  // namespace ui

@@ -4,7 +4,8 @@
 //   help        — list commands
 //   status      — Wi-Fi, time and memory status
 //   next        — same as a short touch: next display mode
-//   hold        — same as a long touch: status screen
+//   hold        — same as a long touch (toggle clock face / status screen)
+//   face        — toggle the clock face (digital/analog)
 //   touch       — raw touch/button reading, for threshold tuning
 //   weather     — print weather data and request an update
 //   ntp         — force an NTP sync

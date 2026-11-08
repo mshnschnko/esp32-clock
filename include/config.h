@@ -35,6 +35,7 @@ constexpr float kTouchReleaseRatio = 0.8f;  // released: reading > baseline * ra
 constexpr uint32_t kDebounceMs = 30;
 constexpr uint32_t kLongPressMs = 800;
 constexpr uint32_t kStatusScreenMs = 10000;  // status screen auto-close
+constexpr uint32_t kAutoReturnMs = 15000;    // away from the clock this long without input -> clock
 
 // --- Time ---
 // POSIX TZ string. "MSK-3" = UTC+3 without DST. The DS3231 always keeps UTC.

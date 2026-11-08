@@ -4,6 +4,7 @@
 
 #include "clock/time_service.h"
 #include "display/display.h"
+#include "display/ui.h"
 #include "input/input.h"
 #include "net/wifi_conn.h"
 #include "weather/weather_client.h"
@@ -50,7 +51,9 @@ void execute(String cmd) {
 
   if (cmd == "help") {
     Serial.println(
-        "Commands: help, status, next, hold, touch, weather, ntp, wifi reset, screen test");
+        "Commands: help, status, next, hold, face, touch, weather, ntp, wifi reset, screen test");
+  } else if (cmd == "face") {
+    ui::toggleFace();
   } else if (cmd == "weather") {
     weather::printSnapshot();
     weather::requestUpdate();
