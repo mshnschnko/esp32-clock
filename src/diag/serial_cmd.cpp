@@ -6,6 +6,7 @@
 #include "display/display.h"
 #include "input/input.h"
 #include "net/wifi_conn.h"
+#include "weather/weather_client.h"
 
 namespace serial_cmd {
 
@@ -48,7 +49,11 @@ void execute(String cmd) {
   if (cmd.isEmpty()) return;
 
   if (cmd == "help") {
-    Serial.println("Commands: help, status, next, hold, touch, ntp, wifi reset, screen test");
+    Serial.println(
+        "Commands: help, status, next, hold, touch, weather, ntp, wifi reset, screen test");
+  } else if (cmd == "weather") {
+    weather::printSnapshot();
+    weather::requestUpdate();
   } else if (cmd == "next") {
     input::inject(input::Event::Click);
   } else if (cmd == "hold") {

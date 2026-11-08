@@ -6,6 +6,7 @@
 
 #include "clock/time_service.h"
 #include "net/wifi_conn.h"
+#include "weather/weather_data.h"
 
 namespace screens {
 
@@ -22,8 +23,10 @@ struct State {
   IPAddress ip;
   uint32_t portalSecondsLeft = 0;
 
-  bool tempValid = false;
+  bool tempValid = false;  // DS3231 chip temperature
   float tempC = 0;
+
+  weather::Data weather;
 
   uint32_t uptimeS = 0;
   bool blink = false;  // toggles every second, for blinking elements

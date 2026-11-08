@@ -74,15 +74,9 @@ void drawDial(U8G2& g, const screens::State& s) {
   g.drawDisc(kCx, kCy, 2);
 }
 
-void drawCentered(U8G2& g, int y, const char* text, bool utf8 = false) {
-  const int w = g.getDisplayWidth() - kPanelX;
-  const int textW = utf8 ? g.getUTF8Width(text) : g.getStrWidth(text);
-  const int x = kPanelX + (w - textW) / 2;
-  if (utf8) {
-    g.drawUTF8(x, y, text);
-  } else {
-    g.drawStr(x, y, text);
-  }
+void drawCentered(U8G2& g, int y, const char* text) {
+  const int panelW = g.getDisplayWidth() - kPanelX;
+  widgets::drawStrCentered(g, kPanelX + panelW / 2, y, text);
 }
 
 void drawPanel(U8G2& g, const screens::State& s) {
@@ -108,9 +102,12 @@ void drawPanel(U8G2& g, const screens::State& s) {
              s.local.tm_year + 1900);
     drawCentered(g, 53, buf);
   }
-  if (s.tempValid) {
-    snprintf(buf, sizeof(buf), "%.0f\xC2\xB0" "C", s.tempC);  // UTF-8 degree sign
-    drawCentered(g, 63, buf, true);
+  if (s.weather.valid) {
+    // Center "icon + temperature" in the panel.
+    g.setFont(u8g2_font_6x10_tr);
+    const int totalW = 12 + widgets::drawTemp(g, 0, 0, s.weather.temp, /*measureOnly=*/true);
+    const int panelW = g.getDisplayWidth() - kPanelX;
+    widgets::drawOutdoor(g, kPanelX + (panelW + totalW) / 2, 63, s);
   }
 }
 

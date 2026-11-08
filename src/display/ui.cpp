@@ -6,6 +6,7 @@
 #include "config.h"
 #include "display/modes/analog.h"
 #include "display/modes/digital.h"
+#include "display/modes/weather_modes.h"
 #include "display/screens.h"
 
 namespace ui {
@@ -20,6 +21,9 @@ struct Mode {
 const Mode kModes[] = {
     {"digital", modes::digital::draw},
     {"analog", modes::analog::draw},
+    {"weather now", modes::weather_now::draw},
+    {"weather hours", modes::weather_hours::draw},
+    {"weather days", modes::weather_days::draw},
 };
 constexpr uint8_t kModeCount = sizeof(kModes) / sizeof(kModes[0]);
 

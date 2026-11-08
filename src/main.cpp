@@ -15,6 +15,7 @@
 #include "display/ui.h"
 #include "input/input.h"
 #include "net/wifi_conn.h"
+#include "weather/weather_client.h"
 
 namespace {
 
@@ -49,6 +50,7 @@ void drawScreen(time_t now) {
   s.portalSecondsLeft = net::portalSecondsLeft();
   s.tempValid = tempValid;
   s.tempC = tempC;
+  weather::snapshot(s.weather);
   s.uptimeS = millis() / 1000;
   s.blink = (now % 2) == 0;
 
@@ -78,6 +80,7 @@ void setup() {
 
   timekeeping::begin(rtcOk);
   net::begin();
+  weather::begin();
   Serial.println("Type 'help' for serial commands");
 }
 
@@ -93,6 +96,7 @@ void loop() {
 
   net::loop();
   timekeeping::loop(net::isConnected());
+  weather::loop(net::isConnected());
   serial_cmd::loop();
   updateTemperature();
 

@@ -90,10 +90,7 @@ void drawBottom(U8G2& g, const screens::State& s) {
              s.local.tm_mday, s.local.tm_mon + 1, s.local.tm_year + 1900);
     g.drawStr(0, kBottomBaseline, buf);
   }
-  if (s.tempValid) {
-    snprintf(buf, sizeof(buf), "%.0f\xC2\xB0" "C", s.tempC);  // UTF-8 degree sign
-    g.drawUTF8(g.getDisplayWidth() - g.getUTF8Width(buf), kBottomBaseline, buf);
-  }
+  widgets::drawOutdoor(g, g.getDisplayWidth(), kBottomBaseline, s);
 }
 
 }  // namespace

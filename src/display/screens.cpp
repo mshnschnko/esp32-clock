@@ -81,15 +81,15 @@ void drawStatus(const State& s) {
   drawTitle(g, s, "Status");
   g.setFont(u8g2_font_5x7_tr);
 
-  snprintf(buf, sizeof(buf), "Wi-Fi: %s", net::stateName(s.netState));
-  g.drawStr(0, y, buf);
-  y += kLine;
-
   if (s.netState == net::State::Connected) {
+    snprintf(buf, sizeof(buf), "Wi-Fi: %s %d dBm", net::stateName(s.netState), s.rssi);
+    g.drawStr(0, y, buf);
+    y += kLine;
     snprintf(buf, sizeof(buf), "IP:    %s", s.ip.toString().c_str());
     g.drawStr(0, y, buf);
     y += kLine;
-    snprintf(buf, sizeof(buf), "RSSI:  %d dBm", s.rssi);
+  } else {
+    snprintf(buf, sizeof(buf), "Wi-Fi: %s", net::stateName(s.netState));
     g.drawStr(0, y, buf);
     y += kLine;
   }
@@ -103,6 +103,19 @@ void drawStatus(const State& s) {
   g.drawStr(0, y, buf);
   y += kLine;
 
+  if (s.weather.loading) {
+    snprintf(buf, sizeof(buf), "Wthr:  loading...");
+  } else if (s.weather.error[0]) {
+    snprintf(buf, sizeof(buf), "Wthr:  %s", s.weather.error);  // long text is clipped at the edge
+  } else if (s.weather.valid) {
+    formatAgo(ago, sizeof(ago), static_cast<uint32_t>(s.weather.ageS));
+    snprintf(buf, sizeof(buf), "Wthr:  updated %s ago", ago);
+  } else {
+    snprintf(buf, sizeof(buf), "Wthr:  no data");
+  }
+  g.drawStr(0, y, buf);
+  y += kLine;
+
   const uint32_t up = s.uptimeS;
   snprintf(buf, sizeof(buf), "Up:    %lud %02lu:%02lu:%02lu", static_cast<unsigned long>(up / 86400),
            static_cast<unsigned long>(up / 3600 % 24), static_cast<unsigned long>(up / 60 % 60),
@@ -111,7 +124,7 @@ void drawStatus(const State& s) {
   y += kLine;
 
   if (s.tempValid) {
-    snprintf(buf, sizeof(buf), "Temp:  %.2f C (DS3231)", s.tempC);
+    snprintf(buf, sizeof(buf), "Chip:  %.2f C (DS3231)", s.tempC);
     g.drawStr(0, y, buf);
   }
 

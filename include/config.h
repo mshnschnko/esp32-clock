@@ -46,6 +46,17 @@ constexpr uint32_t kNtpSyncIntervalMs = 60UL * 60 * 1000;    // SNTP re-sync per
 // Must be longer than kNtpSyncIntervalMs.
 constexpr uint32_t kRtcResyncIntervalMs = 90UL * 60 * 1000;
 
+// --- Weather (MET Norway Locationforecast, no API key) ---
+// Terms: https://api.met.no/doc/TermsOfService — identify the app with contact
+// info in the User-Agent, coordinates with at most 4 decimals, no frequent polling.
+constexpr float kWeatherLat = 59.9343f;  // St. Petersburg
+constexpr float kWeatherLon = 30.3351f;
+constexpr const char* kWeatherPlace = "St. Petersburg";
+constexpr const char* kWeatherUserAgent = "esp32-clock/1.0 github.com/mshnschnko/esp32-clock";
+constexpr uint32_t kWeatherUpdateMs = 30UL * 60 * 1000;  // MET updates about hourly
+constexpr uint32_t kWeatherRetryMinMs = 60UL * 1000;  // doubles on each failure, up to kWeatherUpdateMs
+constexpr uint32_t kWeatherStaleS = 3UL * 60 * 60;    // older data is marked with "!"
+
 // --- Wi-Fi ---
 // Home network credentials are NOT here: they are entered via the setup portal
 // and stored by the ESP32 in flash.
