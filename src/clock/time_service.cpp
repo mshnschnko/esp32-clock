@@ -7,6 +7,7 @@
 
 #include "clock/rtc_clock.h"
 #include "config.h"
+#include "settings/settings.h"
 
 namespace timekeeping {
 
@@ -59,14 +60,14 @@ void logLocalTime(const char* prefix) {
   struct tm t;
   if (!localNow(t)) return;
   Serial.printf("%s %04d-%02d-%02d %02d:%02d:%02d (%s)\n", prefix, t.tm_year + 1900, t.tm_mon + 1,
-                t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, config::kTimezone);
+                t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, settings::get().tz);
 }
 
 }  // namespace
 
 void begin(bool rtcAvailable) {
   rtcOk = rtcAvailable;
-  setenv("TZ", config::kTimezone, 1);
+  setenv("TZ", settings::get().tz, 1);
   tzset();
 
   if (!rtcOk) {
@@ -91,7 +92,7 @@ void loop(bool networkUp) {
     sntpStarted = true;
     sntp_set_time_sync_notification_cb(onSntpSync);
     sntp_set_sync_interval(config::kNtpSyncIntervalMs);
-    configTzTime(config::kTimezone, config::kNtpServer1, config::kNtpServer2);
+    configTzTime(settings::get().tz, config::kNtpServer1, config::kNtpServer2);
     Serial.println("[time] SNTP started");
   }
 
@@ -149,7 +150,14 @@ void forceSync() {
   }
   Serial.println("[time] forcing NTP sync");
   // configTzTime() restarts SNTP and takes the lwIP core lock itself.
-  configTzTime(config::kTimezone, config::kNtpServer1, config::kNtpServer2);
+  configTzTime(settings::get().tz, config::kNtpServer1, config::kNtpServer2);
+}
+
+void setTimezone(const char* tz) {
+  // The system clock runs in UTC; TZ only affects localtime_r(), so this is instant.
+  setenv("TZ", tz, 1);
+  tzset();
+  logLocalTime("[time] time zone changed, local time:");
 }
 
 }  // namespace timekeeping

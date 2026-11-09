@@ -14,7 +14,9 @@
 #include "display/screen_state.h"
 #include "display/ui.h"
 #include "input/input.h"
+#include "net/web_ui.h"
 #include "net/wifi_conn.h"
+#include "settings/settings.h"
 #include "weather/weather_client.h"
 
 namespace {
@@ -75,6 +77,7 @@ void setup() {
   if (bus.oled) display::begin();
   rtcOk = bus.rtc && rtc_clock::begin();
 
+  settings::begin();
   input::begin();
   ui::begin();
 
@@ -97,6 +100,7 @@ void loop() {
   net::loop();
   timekeeping::loop(net::isConnected());
   weather::loop(net::isConnected());
+  web::loop(net::isConnected());
   serial_cmd::loop();
   updateTemperature();
 

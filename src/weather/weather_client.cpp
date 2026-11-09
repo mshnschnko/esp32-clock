@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "config.h"
+#include "settings/settings.h"
 #include "weather/weather_codes.h"
 
 namespace weather {
@@ -36,6 +37,12 @@ TaskHandle_t task = nullptr;
 volatile bool busy = false;          // set by loop(), cleared by the task
 volatile bool resultReady = false;   // set by the task, cleared by loop()
 volatile bool resultOk = false;
+
+// Request parameters: written by loop() before notifying the task, read by the
+// task only (the notification orders the accesses). Settings may change at any
+// time on the web page; the task never reads settings::get() itself.
+float requestLat = 0;
+float requestLon = 0;
 
 // --- loop()-only scheduling state ---
 uint32_t nextFetchMs = 0;
@@ -88,7 +95,7 @@ float apparentTemp(float ta, float rh, float ws) {
 void buildUrl(char* buf, size_t size) {
   // MET asks for at most 4 decimals in coordinates.
   snprintf(buf, size, "https://%s/weatherapi/locationforecast/2.0/compact?lat=%.4f&lon=%.4f",
-           kHost, config::kWeatherLat, config::kWeatherLon);
+           kHost, requestLat, requestLon);
 }
 
 // Downloads and parses the forecast into `entries`.
@@ -356,6 +363,8 @@ void loop(bool networkUp) {
   if (forceRequested || due) {
     forceRequested = false;
     busy = true;
+    requestLat = settings::get().lat;
+    requestLon = settings::get().lon;
     xTaskNotifyGive(task);
   }
 }
@@ -382,7 +391,7 @@ void printSnapshot() {
                   d.error[0] ? ", last error: " : "", d.error);
     return;
   }
-  Serial.printf("[weather] %s (MET Norway), %ld s ago%s%s\n", config::kWeatherPlace,
+  Serial.printf("[weather] %s (MET Norway), %ld s ago%s%s\n", settings::get().place,
                 static_cast<long>(d.ageS), d.error[0] ? ", last error: " : "", d.error);
   Serial.printf("  now: %.1fC (feels %.1fC), %s, wind %.1f m/s from %d deg, humidity %d%%, %s\n",
                 d.temp, d.feelsLike, describe(d.cond), d.windSpeed, d.windDir, d.humidity,

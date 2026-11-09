@@ -7,6 +7,7 @@
 #include "display/ui.h"
 #include "input/input.h"
 #include "net/wifi_conn.h"
+#include "settings/settings.h"
 #include "weather/weather_client.h"
 
 namespace serial_cmd {
@@ -67,7 +68,8 @@ void execute(String cmd) {
 
   if (cmd == "help") {
     Serial.println(
-        "Commands: help, status, next, hold, face, night, dim, contrast, touch, weather, ntp, "
+        "Commands: help, status, settings, next, hold, face, night, dim, contrast, touch, weather, "
+        "ntp, "
         "wifi reset, "
         "screen test");
   } else if (cmd == "dim" || cmd.startsWith("dim ")) {
@@ -80,6 +82,8 @@ void execute(String cmd) {
     } else {
       Serial.println("Usage: contrast <0..255>, e.g. contrast 0x10");
     }
+  } else if (cmd == "settings") {
+    settings::print();
   } else if (cmd == "night") {
     ui::cycleNightOverride();
   } else if (cmd == "face") {

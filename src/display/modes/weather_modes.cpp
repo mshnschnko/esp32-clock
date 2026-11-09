@@ -7,6 +7,7 @@
 #include "display/display.h"
 #include "display/weather_icons.h"
 #include "display/widgets.h"
+#include "settings/settings.h"
 #include "weather/weather_codes.h"
 
 namespace modes {
@@ -69,7 +70,7 @@ void drawWeatherScreen(const screens::State& s, const char* title, DrawContent c
 namespace weather_now {
 
 void draw(const screens::State& s) {
-  drawWeatherScreen(s, config::kWeatherPlace, [&](U8G2& g) {
+  drawWeatherScreen(s, settings::get().place, [&](U8G2& g) {
     const weather::Data& w = s.weather;
     char buf[32];
 

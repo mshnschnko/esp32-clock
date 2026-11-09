@@ -33,4 +33,7 @@ int32_t secondsSinceSync();
 // Requests an immediate NTP sync (no-op until SNTP is started).
 void forceSync();
 
+// Applies a new POSIX TZ string at once (the time zone comes from settings::get().tz).
+void setTimezone(const char* tz);
+
 }  // namespace timekeeping

@@ -3,6 +3,8 @@
 #include <stdint.h>
 
 // Hardware configuration. See docs/hardware.md and docs/wiring.md.
+// Time zone, weather location and auto-return time below are DEFAULTS: the
+// actual values are edited on the web page and kept in NVS (src/settings).
 
 // Display controller: 1 = SH1106 (1.3" modules), 0 = SSD1306 (0.96" modules).
 // Wrong choice shows up as a picture shifted by 2 px or noise along the right edge.

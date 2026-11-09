@@ -3,6 +3,7 @@
 // Commands typed in the serial monitor (there is no button yet):
 //   help        — list commands
 //   status      — Wi-Fi, time and memory status
+//   settings    — print the current settings (edited on the web page)
 //   next        — same as a short touch: next display mode
 //   hold        — same as a long touch (toggle clock face / status screen)
 //   face        — toggle the clock face (digital/analog)

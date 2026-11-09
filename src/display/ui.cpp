@@ -11,6 +11,7 @@
 #include "display/modes/night_clock.h"
 #include "display/modes/weather_modes.h"
 #include "display/screens.h"
+#include "settings/settings.h"
 
 namespace ui {
 
@@ -117,7 +118,8 @@ bool handle(input::Event e) {
 
   switch (e) {
     case input::Event::None:
-      if (screen != kClockScreen && now - lastInputMs >= config::kAutoReturnMs) {
+      if (screen != kClockScreen &&
+          now - lastInputMs >= settings::get().autoReturnS * 1000UL) {
         resetToClock();
         Serial.println("[ui] auto-return to clock");
         return true;
@@ -172,14 +174,23 @@ void draw(const screens::State& s) {
   }
 }
 
-void toggleFace() {
-  face = (face + 1) % kFaceCount;
+void toggleFace() { setFace((face + 1) % kFaceCount); }
+
+void setFace(uint8_t f) {
+  if (f >= kFaceCount) return;
+  face = f;
   Preferences prefs;
   prefs.begin(kPrefsNamespace, false);
   prefs.putUChar(kPrefsFaceKey, face);
   prefs.end();
   Serial.printf("[ui] clock face: %s\n", kFaces[face].name);
 }
+
+uint8_t currentFace() { return face; }
+
+uint8_t faceCount() { return kFaceCount; }
+
+const char* faceName(uint8_t f) { return f < kFaceCount ? kFaces[f].name : "?"; }
 
 NightOverride cycleNightOverride() {
   if (!config::kNightModeEnabled) {

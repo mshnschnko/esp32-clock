@@ -8,7 +8,7 @@
 // Screens cycle on Click: clock -> weather now -> weather hours -> weather days -> clock.
 // The clock screen draws the selected face (digital/analog), a setting kept in NVS.
 // LongPress: on the clock toggles the face, elsewhere opens the status screen.
-// Away from the clock with no input for kAutoReturnMs -> back to the clock.
+// Away from the clock with no input for settings autoReturnS -> back to the clock.
 // To add a screen: a file in display/modes/ + a line in kScreens (ui.cpp);
 // a new clock face: a line in kFaces.
 namespace ui {
@@ -23,6 +23,12 @@ void draw(const screens::State& s);
 
 // Switches to the next clock face and saves it (also serial command "face").
 void toggleFace();
+
+// Clock face by index (web settings page); saved to NVS.
+void setFace(uint8_t f);
+uint8_t currentFace();
+uint8_t faceCount();
+const char* faceName(uint8_t f);
 
 // "clock (digital)", "weather now", ...
 const char* screenName();
